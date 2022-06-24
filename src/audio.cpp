@@ -37,7 +37,7 @@ float DandySynth::noteToFreq(float note)
 	double a = pow(2, 1.0/12.0);
 	float freq = 110*pow(a, note+3);
 
-    return freq;
+	return freq;
 }
 
 void DandySynth::run(uint32_t now)
@@ -51,10 +51,10 @@ void DandySynth::run(uint32_t now)
 
 		float notePos = max(1.0-((now-noteTimes[i])/(1000000.0*(1.5*p0))), 0.0); // time frame for shaper
 		
-        notePos = shaper(noteAmp, notePos);
+		notePos = shaper(noteAmp, notePos);
 
 		lastAmp[i] = noteAmp;
-        pos += notePos;
+		pos += notePos;
 	}
 	MCP.fastWriteA(pos);
 

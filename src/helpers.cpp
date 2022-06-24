@@ -58,9 +58,9 @@ void DandySynth::doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity)
 
 void DandySynth::setP0(float p)
 {
-    this->p0 = p;
+	this->p0 = p;
 }
 void DandySynth::setP1(float p)
 {
-    this->p1 = p;
+	this->p1 = p;
 }
