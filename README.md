@@ -1,6 +1,7 @@
 # Dandy Synth
-Dandy Synth is a open soruce teensy based synthesizer with hardware MIDI in and PCM out through an MCP4822, designed to be low cost and easy to build from readily available components.
-It is currently in it's prototyping stage with a PCB coming soon.
+Dandy Synth is a open source teensy based synthesizer with hardware MIDI in and PCM out through an MCP4822, designed to be low cost and easy to build from readily available components.
+
+It is currently in it's prototyping stage with a PCB designs coming soon.
 
 It is created mainly as a learning exercise rather than a commercial product.
 
