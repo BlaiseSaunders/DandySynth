@@ -11,15 +11,17 @@
 class DandySynth
 {
 private:
-    float p0, p1;
+    
 
 
 public:
+    float p0, p1, p2, p3, p4, p5;
+
     float pi = 3.1415926;
 
     // LOOKUP TABLES
-    uint16_t sine[361];
-    uint16_t square[361];
+    float sine[361];
+    float square[361];
 
     MCP4921 MCP;
 
@@ -35,14 +37,14 @@ public:
     static byte lastVel;
     static uint32_t noteTimes[OSCIS+1];
     static byte lastNotes[OSCIS+1];
-    static float lastAmp[OSCIS];
 
 
     void generateWaveTables();
     float getNoteSquare(float freq, int now);
-    float getNoteSquareSine(float freq, int now);
+    float getNoteSine(float freq, int now);
+    float getNoteSineR(float freq, int now);
     static void doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity);
-    int16_t shaper(int16_t pos, float t);
+    float shaper(float t);
 
     void run(uint32_t now);
     void setup();
@@ -52,6 +54,10 @@ public:
 
     void setP0(float v);
     void setP1(float v);
+    void setP2(float v);
+    void setP3(float v);
+    void setP4(float v);
+    void setP5(float v);
 
 };
 
