@@ -2,11 +2,18 @@
 #define __HEADER
 
 #include <MIDI.h>
+#include <Encoder.h>
 #include "MCP_DAC.h"
 #include <SPI.h>
 
 #define OSCIS 4
 #define BUFSIZE 64
+#define WAVETABLE_SIZE 16
+#define WAVE_SIZE 361
+
+
+void setupDisplay();
+void runDisplay();
 
 class DandySynth
 {
@@ -20,8 +27,9 @@ public:
     float pi = 3.1415926;
 
     // LOOKUP TABLES
-    float sine[361];
-    float square[361];
+    float sine[WAVE_SIZE];
+    float table[WAVETABLE_SIZE][WAVE_SIZE];
+    float square[WAVE_SIZE];
 
     MCP4921 MCP;
 
@@ -44,7 +52,7 @@ public:
     float getNoteSine(float freq, int now);
     float getNoteSineR(float freq, int now);
     static void doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity);
-    float shaper(float t);
+    float envelope(float t);
 
     void run(uint32_t now);
     void setup();

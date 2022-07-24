@@ -7,7 +7,10 @@ byte DandySynth::lastVel;
 uint32_t DandySynth::noteTimes[OSCIS+1];
 byte DandySynth::lastNotes[OSCIS+1];
 
-
+float naive_lerp(float a, float b, float t)
+{
+    return a + t * (b - a);
+}
 
 void DandySynth::generateWaveTables()
 {
@@ -16,8 +19,18 @@ void DandySynth::generateWaveTables()
 		sine[i] = 0.5 + 0.5 * sin(i * PI / 180);
 	for (int i = 0; i < 180; i++)
 		square[i] = 1.;
-	for (int i = 180; i < 360; i++)
+	for (int i = 180; i < 361; i++)
 		square[i] = 0;
+
+
+	// LERP Table between square and sine
+	for (int j = 0; j < WAVETABLE_SIZE; j++)
+		for (int i = 0; i < 361; i++)
+		{
+			float u = (float)j/(float)WAVETABLE_SIZE;
+			float d = 1.0-u;
+			table[j][i] = (square[i]*u) + (sine[i]*d);
+		}
 
 }
 

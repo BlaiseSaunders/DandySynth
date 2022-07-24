@@ -16,6 +16,8 @@ void setupMIDI()
 	delay(100);
 }
 
+Encoder myEnc(3, 4);
+
 void setup()
 {
 	// Setup Serial
@@ -28,13 +30,22 @@ void setup()
 	pinMode(17, INPUT_PULLUP);
 	pinMode(18, INPUT_PULLUP);
 	pinMode(19, INPUT_PULLUP);
+	pinMode(5, INPUT_PULLUP); // Encoder switch
 
 
 	synth = new DandySynth();
 
 	setupMIDI();
+
+  setupDisplay();
+
 	synth->setup();
 }
+
+long oldPosition  = -999;
+bool buttonState = 0;
+long lastPress = 0;
+
 void loop()
 {
 	DIN_MIDI.read();
@@ -65,7 +76,21 @@ void loop()
 		lastTime = now;
 	}*/
 
-	synth->run(now);
+  long newPosition = myEnc.read();
+  if (newPosition != oldPosition) {
+    oldPosition = newPosition;
+    Serial.println(newPosition);
+  }
 
+  if (!digitalRead(5) && !buttonState && now-lastPress > 30000)
+  {
+    Serial.println("ENCODED");
+    buttonState = 1;
+    lastPress = now;
+  }
+  else if (digitalRead(5))
+    buttonState = 0;
+
+	synth->run(now);
 }
 
