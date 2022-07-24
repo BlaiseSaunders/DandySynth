@@ -1,6 +1,6 @@
 #include "header.h"
 
-float DandySynth::shaper(float t)
+float DandySynth::envelope(float t)
 {
 	t = 1.0-t; // Ranges between 0.0 and 1.0
 
@@ -28,6 +28,11 @@ float DandySynth::shaper(float t)
 	}
 }
 
+float DandySynth::lfo()
+{
+	
+}
+
 
 float DandySynth::noteToFreq(float note)
 {
@@ -39,6 +44,9 @@ float DandySynth::noteToFreq(float note)
 
 void DandySynth::run(uint32_t now)
 {
+	runDisplay();
+
+
 	float pos = 0;
 	float slices[OSCIS];
 	float amps[OSCIS];
@@ -63,8 +71,8 @@ void DandySynth::run(uint32_t now)
 		//slices[i] /= 2.0;
 		//slices[i] *= mod;
 
-		float notePos = max(1.0-((now-noteTimes[i])/(1000000.0*(1.5*p0))), 0.0); // time frame for shaper
-		amps[i] = shaper(notePos);
+		float notePos = max(1.0-((now-noteTimes[i])/(1000000.0*(1.5*p0))), 0.0); // time frame for envelope
+		amps[i] = envelope(notePos);
 
 		sum += amps[i];
 	}
@@ -76,7 +84,8 @@ void DandySynth::run(uint32_t now)
 		else
 			pos += slices[i]*amps[i];
 	}
-		
+	int j = 16*p0;
+	pos = table[j][(int)(now*0.01)%360];
 
 	MCP.fastWriteA(pos*4096.0);
 
