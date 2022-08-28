@@ -39,6 +39,9 @@ public:
     int bufPos = 0;
 
 
+    int encPos = 0;
+    int encPush = 0;
+
     static uint32_t noteTime;
     static byte lastNote;
     static byte lastChan;
@@ -66,6 +69,9 @@ public:
     void setP3(float v);
     void setP4(float v);
     void setP5(float v);
+
+    void setEncPos(int pos);
+    void setEncPush(int pushed);
 
 };
 

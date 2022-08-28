@@ -28,11 +28,16 @@ float DandySynth::envelope(float t)
 	}
 }
 
-float DandySynth::lfo()
+
+void DandySynth::setEncPos(int pos)
 {
-	
+	this->encPos = pos;
 }
 
+void DandySynth::setEncPush(int pushed)
+{
+	this->encPush = pushed;
+}
 
 float DandySynth::noteToFreq(float note)
 {
@@ -99,4 +104,4 @@ void DandySynth::setup()
 
 	MCP.begin(10);
 	MCP.fastWriteA(0);
-}
+}	

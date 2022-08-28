@@ -37,7 +37,7 @@ void setup()
 
 	setupMIDI();
 
-  setupDisplay();
+	setupDisplay();
 
 	synth->setup();
 }
