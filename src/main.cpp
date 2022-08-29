@@ -37,8 +37,6 @@ void setup()
 
 	setupMIDI();
 
-	setupDisplay();
-
 	synth->setup();
 }
 
@@ -60,36 +58,26 @@ void loop()
 
 	uint32_t now = micros();
 	static uint32_t lastTime = 0;
-	// Our Serial Output
-	/*if (now - lastTime > 300000)
+
+	long newPosition = myEnc.read();
+	if (newPosition != oldPosition)
 	{
-		Serial.print("LastNoteval:\t");
-		Serial.print(synth->outBuffer[synth->bufPos%BUFSIZE]);
-		Serial.print("LastNotevalReal:\t");
-		Serial.print(synth->lastNotes[0]);
-		Serial.print("\tTime:\t");
-		Serial.print(now-synth->noteTime);
+		oldPosition = newPosition;
+		Serial.println(newPosition);
+	}
 
-		Serial.printf("\tp0: %f\t", synth->p0);
-		Serial.printf("\tp1: %f\t", synth->p1);
-		Serial.println();
-		lastTime = now;
-	}*/
+	if (!digitalRead(5) && !buttonState && now-lastPress > 30000)
+	{
+		Serial.println("ENCODED");
+		buttonState = 1;
+		lastPress = now;
+	}
+	else if (digitalRead(5))
+		buttonState = 0;
 
-  long newPosition = myEnc.read();
-  if (newPosition != oldPosition) {
-    oldPosition = newPosition;
-    Serial.println(newPosition);
-  }
 
-  if (!digitalRead(5) && !buttonState && now-lastPress > 30000)
-  {
-    Serial.println("ENCODED");
-    buttonState = 1;
-    lastPress = now;
-  }
-  else if (digitalRead(5))
-    buttonState = 0;
+	synth->setEncPos(newPosition);
+	synth->setEncPush(buttonState);
 
 	synth->run(now);
 }

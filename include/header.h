@@ -1,24 +1,74 @@
 #ifndef __HEADER
 #define __HEADER
 
+#include <vector>
+#include <string>
 #include <MIDI.h>
 #include <Encoder.h>
 #include "MCP_DAC.h"
 #include <SPI.h>
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7789.h> // Hardware-specific library for ST7789
+#include <SPI.h>
+#include <Fonts/FreeMonoBoldOblique12pt7b.h>
+#include <Fonts/FreeSerif9pt7b.h>
+
 
 #define OSCIS 4
 #define BUFSIZE 64
 #define WAVETABLE_SIZE 16
 #define WAVE_SIZE 361
 
+// Because of the limited number of pins available on the Circuit Playground Boards
+// Software SPI is used
+#define TFT_CS        38
+#define TFT_RST       28 // Or set to -1 and connect to Arduino RESET pin
+#define TFT_DC        29
+#define TFT_BACKLIGHT PIN_A3 // Display backlight pin
 
-void setupDisplay();
-void runDisplay();
+
+
+
+class DandyDisplay
+{
+public:
+    DandyDisplay();
+    void setupDisplay();
+    void runDisplay();
+
+    void encoderPosPush(int pos, int push);
+
+private:
+    void mainMenu();
+    void connMatrix();
+    void waveFormDisplay();
+    void errorScreen();
+
+    void menu(std::string title, std::vector<std::string> text, int encPos);
+
+    enum displayMode
+    {
+        MAIN,
+        CONN,
+        WAVE
+    };
+
+    enum displayMode currentDisplaymode = MAIN;
+
+
+    int encoderOffset = 0;
+
+    int encoderPos = 0;
+    int encoderPush = 0;
+
+    Adafruit_ST7789 *tft;
+};
+
 
 class DandySynth
 {
 private:
-    
+    DandyDisplay *display;
 
 
 public:

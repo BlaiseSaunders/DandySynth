@@ -49,9 +49,10 @@ float DandySynth::noteToFreq(float note)
 
 void DandySynth::run(uint32_t now)
 {
-	runDisplay();
-
-
+	display->encoderPosPush(encPos, encPush);
+	display->runDisplay();
+	
+	
 	float pos = 0;
 	float slices[OSCIS];
 	float amps[OSCIS];
@@ -100,6 +101,8 @@ void DandySynth::run(uint32_t now)
 
 void DandySynth::setup()
 {
+	display = new DandyDisplay();
+	
 	generateWaveTables();
 
 	MCP.begin(10);
