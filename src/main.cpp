@@ -32,7 +32,6 @@ void setup()
 	pinMode(19, INPUT_PULLUP);
 	pinMode(5, INPUT_PULLUP); // Encoder switch
 
-
 	synth = new DandySynth();
 
 	setupMIDI();
@@ -66,7 +65,7 @@ void loop()
 		Serial.println(newPosition);
 	}
 
-	if (!digitalRead(5) && !buttonState && now-lastPress > 30000)
+	if (!digitalRead(5) && !buttonState && now-lastPress > 300000)
 	{
 		Serial.println("ENCODED");
 		buttonState = 1;
@@ -76,8 +75,8 @@ void loop()
 		buttonState = 0;
 
 
-	synth->setEncPos(newPosition);
-	synth->setEncPush(buttonState);
+	synth->setEncPos(-newPosition/4);
+	synth->setEncPush(buttonState); // TODO: DEBOUNCE MORE
 
 	synth->run(now);
 }

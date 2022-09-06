@@ -102,6 +102,7 @@ void DandySynth::run(uint32_t now)
 void DandySynth::setup()
 {
 	display = new DandyDisplay();
+	display->setupDisplay();
 	
 	generateWaveTables();
 

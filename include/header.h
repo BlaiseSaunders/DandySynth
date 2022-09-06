@@ -43,6 +43,7 @@ private:
     void connMatrix();
     void waveFormDisplay();
     void errorScreen();
+    void title(std::string title);
 
     void menu(std::string title, std::vector<std::string> text, int encPos);
 
@@ -56,9 +57,9 @@ private:
     enum displayMode currentDisplaymode = MAIN;
 
 
-    int encoderOffset = 0;
+    signed int encoderOffset = 0;
 
-    int encoderPos = 0;
+    signed int encoderPos = 0;
     int encoderPush = 0;
 
     Adafruit_ST7789 *tft;
