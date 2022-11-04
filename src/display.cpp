@@ -113,7 +113,7 @@ void DandyDisplay::waveFormDisplay()
 
 DandyDisplay::DandyDisplay() // Constructor
 {
-
+	this->setupDisplay();
 }
 
 void DandyDisplay::setupDisplay()

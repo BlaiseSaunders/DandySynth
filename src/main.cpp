@@ -48,6 +48,25 @@ void loop()
 	DIN_MIDI.read();
 	yield();
 
+
+	uint32_t now = micros();
+
+	static uint32_t lastTime = 0;
+	//Our Serial Output
+	if (now - lastTime > 300000)
+	{
+		Serial.print("LastNoteval:\t");
+		Serial.print(synth->outBuffer[synth->bufPos%BUFSIZE]);
+		Serial.print("LastNotevalReal:\t");
+		Serial.print(synth->lastNote);
+		Serial.print("\tTime:\t");
+		Serial.print(now-synth->noteTimes[0]);
+		Serial.printf("\tp0: %f\t", synth->p0);
+		Serial.printf("\tp1: %f\t", synth->p1);
+		Serial.println();
+		lastTime = now;
+	}
+
 	synth->setP0((analogRead(14)-10)/310.0);
 	synth->setP1((analogRead(15)-10)/310.0);
 	synth->setP2((analogRead(16)-10)/310.0);
@@ -55,8 +74,6 @@ void loop()
 	synth->setP4((analogRead(18)-10)/310.0);
 	synth->setP5((analogRead(19)-10)/310.0);
 
-	uint32_t now = micros();
-	static uint32_t lastTime = 0;
 
 	long newPosition = myEnc.read();
 	if (newPosition != oldPosition)

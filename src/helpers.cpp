@@ -34,6 +34,16 @@ void DandySynth::generateWaveTables()
 
 }
 
+
+float DandySynth::getNoteWave(float freq, int now, int slice)
+{
+	int period = 1e6 / freq;
+	float t = now % period;
+	int idx = (360 * t) / period;
+	float pos = table[slice][idx]/2.;
+	return pos;
+}
+
 float DandySynth::getNoteSquare(float freq, int now)
 {
 	int period = 1e6 / freq;

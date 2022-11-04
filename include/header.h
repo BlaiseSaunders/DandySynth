@@ -105,6 +105,7 @@ public:
     float getNoteSquare(float freq, int now);
     float getNoteSine(float freq, int now);
     float getNoteSineR(float freq, int now);
+    float getNoteWave(float freq, int now, int slice);
     static void doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity);
     float envelope(float t);
 
