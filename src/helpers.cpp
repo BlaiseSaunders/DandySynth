@@ -2,10 +2,18 @@
 
 uint32_t DandySynth::noteTime;
 byte DandySynth::lastNote;
+byte DandySynth::controlValues[256];
 byte DandySynth::lastChan;
+byte DandySynth::lastCCVal;
+byte DandySynth::lastCCNum;
 byte DandySynth::lastVel;
 uint32_t DandySynth::noteTimes[OSCIS+1];
 byte DandySynth::lastNotes[OSCIS+1];
+
+float naive_lerp(float a, float b, float t)
+{
+    return a + t * (b - a);
+}
 
 
 
@@ -19,6 +27,29 @@ void DandySynth::generateWaveTables()
 	for (int i = 180; i < 360; i++)
 		square[i] = 0;
 
+	// LERP Table between square and sine
+	for (int j = 0; j < WAVETABLE_SIZE; j++)
+		for (int i = 0; i < WAVE_SIZE-1; i++)
+		{
+			float u = (float)j/(float)WAVETABLE_SIZE;
+			float d = 1.0-u;
+			table[j][i] = (square[i]*u) + (sine[i]*d);
+		}
+
+
+}
+
+float DandySynth::getNoteWave(float freq, int now, int slice)
+{
+	if (slice < 0)
+		slice = 0;
+	if (slice >= WAVETABLE_SIZE-1)
+		slice = WAVETABLE_SIZE-1;
+	int period = 1e6 / freq;
+	float t = now % period;
+	int idx = (360 * t) / period;
+	float pos = table[slice][idx]/2.;
+	return pos;
 }
 
 float DandySynth::getNoteSquare(float freq, int now)
@@ -60,6 +91,13 @@ void DandySynth::doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity)
 	}
 	lastNotes[0] = lastNote;
 	noteTimes[0] = noteTime;
+}
+
+void DandySynth::handleMIDIControlChange(byte channel, byte number, byte value)
+{
+	lastCCNum = number;
+	lastCCVal = value;
+	controlValues[value] = number;
 }
 
 void DandySynth::setP0(float p)

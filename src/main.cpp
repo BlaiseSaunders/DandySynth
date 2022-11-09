@@ -9,10 +9,14 @@ DandySynth *synth;
 
 float p = 3.1415926;
 
+Encoder myEnc(3, 4);
+
+
 void setupMIDI()
 {
 	DIN_MIDI.begin(MIDI_CHANNEL_OMNI);
 	DIN_MIDI.setHandleNoteOn(synth->doSomeStuffWithNoteOn);
+	DIN_MIDI.setHandleControlChange(synth->handleMIDIControlChange);
 	delay(100);
 }
 
@@ -35,6 +39,12 @@ void setup()
 	setupMIDI();
 	synth->setup();
 }
+
+
+long oldPosition  = -999;
+bool buttonState = 0;
+long lastPress = 0;
+
 void loop()
 {
 	DIN_MIDI.read();
@@ -50,12 +60,22 @@ void loop()
 	uint32_t now = micros();
 	static uint32_t lastTime = 0;
 	// Our Serial Output
-	/*if (now - lastTime > 300000)
+	if (now - lastTime > 300000)
 	{
-		Serial.print("LastNoteval:\t");
+		Serial.print("CC A:\t");
+		Serial.print(synth->controlValues[0]);
+		Serial.print("\tCC B:\t");
+		Serial.print(synth->controlValues[1]);
+		Serial.print("\tCC C:\t");
+		Serial.print(synth->controlValues[2]);
+		Serial.print("\tLastNoteval:\t");
 		Serial.print(synth->outBuffer[synth->bufPos%BUFSIZE]);
-		Serial.print("LastNotevalReal:\t");
+		Serial.print("\tLastNotevalReal:\t");
 		Serial.print(synth->lastNotes[0]);
+		Serial.print("\tLastChan:\t");
+		Serial.print(synth->lastChan);
+		Serial.print("\tLastVel:\t");
+		Serial.print(synth->lastVel);
 		Serial.print("\tTime:\t");
 		Serial.print(now-synth->noteTime);
 
@@ -63,9 +83,28 @@ void loop()
 		Serial.printf("\tp1: %f\t", synth->p1);
 		Serial.println();
 		lastTime = now;
-	}*/
+	}
+
+	long newPosition = myEnc.read();
+	if (newPosition != oldPosition)
+	{
+		oldPosition = newPosition;
+		Serial.println(newPosition);
+	}
+
+	if (!digitalRead(8) && !buttonState && now-lastPress > 300000)
+	{
+		Serial.println("ENCODED");
+		buttonState = 1;
+		lastPress = now;
+	}
+	else if (digitalRead(8))
+		buttonState = 0;
+
+
+	synth->setEncPos(-newPosition/4);
+	synth->setEncPush(buttonState); // TODO: DEBOUNCE MORE
 
 	synth->run(now);
-
 }
 
