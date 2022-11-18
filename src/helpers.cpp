@@ -15,8 +15,6 @@ float naive_lerp(float a, float b, float t)
     return a + t * (b - a);
 }
 
-
-
 void DandySynth::generateWaveTables()
 {
 	// fill table
@@ -36,6 +34,18 @@ void DandySynth::generateWaveTables()
 			table[j][i] = (square[i]*u) + (sine[i]*d);
 		}
 
+}
+
+float DandySynth::freqTo360Index(float freq, int now)
+{
+	int period = 1e6 / freq;
+	float t = now % period;
+	return (360 * t) / period;
+}
+float DandySynth::freqToRadIndex(float freq, int now)
+{
+	float idx = freqTo360Index(freq, now);
+	return idx * PI / 180.0;
 
 }
 
@@ -45,38 +55,43 @@ float DandySynth::getNoteWave(float freq, int now, int slice)
 		slice = 0;
 	if (slice >= WAVETABLE_SIZE-1)
 		slice = WAVETABLE_SIZE-1;
-	int period = 1e6 / freq;
-	float t = now % period;
-	int idx = (360 * t) / period;
+	int idx = freqTo360Index(freq, now);
 	float pos = table[slice][idx]/2.;
 	return pos;
 }
 
 float DandySynth::getNoteSquare(float freq, int now)
 {
-	int period = 1e6 / freq;
-	float t = now % period;
-	int idx = (360 * t) / period;
+	int idx = freqTo360Index(freq, now);
 	float pos = square[idx]/2.;
 	return pos;
 }
 float DandySynth::getNoteSine(float freq, int now)
 {
-	int period = 1e6 / freq;
-	float t = now % period;
-	int idx = (360 * t) / period;
+	int idx = freqTo360Index(freq, now);
 	float pos = sine[idx]/2.;
 	return pos;
 }
 float DandySynth::getNoteSineR(float freq, int now)
 {
+	float radidx = freqToRadIndex(freq, now);;
+	float fradidx = freqToRadIndex(this->fmFreq, now);
+
+	//return sin(radidx + sin(fradidx))/2. + 0.5;
+	return radidx > 180;
+	//return (int)(sin(radidx + sin(fradidx))/2. + 0.5);
+	//return (float)square[(int)radidx + (int)(sin(fradidx))] / 2. + 0.5;
+}
+float DandySynth::getNoteSineGoofy(float freq, int now)
+{
 	float period = 1e6 / freq;
 	float t = fmod(now, period);
-	return (sin((16.0*p3*t)/period)/4.)+0.5;
+	return (t * PI / 180)/2.;
 }
 
 
-void DandySynth::doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity)
+
+void DandySynth::handleNoteOn(byte channel, byte pitch, byte velocity)
 {
 	// Do some stuff with NoteOn here
 	lastNote = pitch;
@@ -123,4 +138,17 @@ void DandySynth::setP4(float p)
 void DandySynth::setP5(float p)
 {
 	this->p5 = p;
+}
+
+
+void DandySynth::setEncPos(int pos) { this->encPos = pos; }
+
+void DandySynth::setEncPush(int pushed) { this->encPush = pushed; }
+
+float DandySynth::noteToFreq(float note)
+{
+	double a = pow(2, 1.0 / 12.0);
+	float freq = 40 * pow(a, note + 3);
+
+	return freq;
 }

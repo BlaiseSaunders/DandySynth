@@ -15,7 +15,7 @@ Encoder myEnc(3, 4);
 void setupMIDI()
 {
 	DIN_MIDI.begin(MIDI_CHANNEL_OMNI);
-	DIN_MIDI.setHandleNoteOn(synth->doSomeStuffWithNoteOn);
+	DIN_MIDI.setHandleNoteOn(synth->handleNoteOn);
 	DIN_MIDI.setHandleControlChange(synth->handleMIDIControlChange);
 	delay(100);
 }
@@ -64,10 +64,10 @@ void loop()
 	{
 		Serial.print("CC A:\t");
 		Serial.print(synth->controlValues[0]);
-		Serial.print("\tCC B:\t");
-		Serial.print(synth->controlValues[1]);
-		Serial.print("\tCC C:\t");
-		Serial.print(synth->controlValues[2]);
+		Serial.print("\tCC E:\t");
+		Serial.print(synth->controlValues[4]*0.5);
+		Serial.print("\tWT Pos:\t");
+		Serial.print(synth->waveTablePos);
 		Serial.print("\tLastNoteval:\t");
 		Serial.print(synth->outBuffer[synth->bufPos%BUFSIZE]);
 		Serial.print("\tLastNotevalReal:\t");

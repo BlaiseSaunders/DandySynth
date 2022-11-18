@@ -68,8 +68,24 @@ private:
 class DandySynth
 {
 private:
-    
+
     DandyDisplay *display;
+
+    typedef enum WAVE_TYPE { SINE, SQUARE, TRIANGLE, COMBO, REAL, WAVETABLE } WAVE_TYPE;
+
+    struct EnvelopeSettings
+    {
+        float attackStartValue;
+        float attackEndValue;
+        float attackTimeEnd;
+        
+        float sustainValue;
+        float sustainTimeEnd;
+
+        float releaseValueStart;
+        float releaseValueEnd;
+        float releaseTime; // Higher is quicker
+    };
 
 public:
     float p0, p1, p2, p3, p4, p5;
@@ -77,6 +93,9 @@ public:
     float velParam;
 
     float pi = 3.1415926;
+
+	#define LFOS 4
+	float lfoWaveValues[LFOS];
 
     // LOOKUP TABLES
     float sine[361];
@@ -89,11 +108,10 @@ public:
     int16_t outBuffer[BUFSIZE]; // For wave output
 
     int bufPos = 0;
-
-
     int encPos = 0;
     int encPush = 0;
-
+    float fmFreq = 1.;
+    int waveTablePos = 0;
 
     static byte controlValues[256];
     static byte lastCCNum;
@@ -106,15 +124,24 @@ public:
     static byte lastNotes[OSCIS+1];
 
 
-
     void generateWaveTables();
+    void processLFOs(int now);
+
+    float getOscilatorsOuput(int now);
+
     float getNoteWave(float freq, int now, int slice);
     float getNoteSquare(float freq, int now);
     float getNoteSine(float freq, int now);
     float getNoteSineR(float freq, int now);
-    static void doSomeStuffWithNoteOn(byte channel, byte pitch, byte velocity);
+    float getNoteSineGoofy(float freq, int now);
+    float freqTo360Index(float freq, int now);
+    float freqToRadIndex(float freq, int now);
+
+    float sampleWave(WAVE_TYPE waveType, float freq, int now, float param);
+
+    static void handleNoteOn(byte channel, byte pitch, byte velocity);
     static void handleMIDIControlChange(byte channel, byte pitch, byte velocity);
-    float shaper(float t);
+    float envelope(float t, struct DandySynth::EnvelopeSettings set);
 
     void run(uint32_t now);
     void setup();
