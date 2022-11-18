@@ -87,6 +87,17 @@ private:
         float releaseTime; // Higher is quicker
     };
 
+    struct EnvelopeSettings basicOneShotEnv = {
+        .attackStartValue = 0.0,
+        .attackEndValue = 1.0,
+        .attackTimeEnd = 0.1,
+        .sustainValue = 0.9,
+        .sustainTimeEnd = 0.5,
+        .releaseValueStart = 0.9,
+        .releaseValueEnd = 0.0,
+        .releaseTime = 0.3
+    };
+
 public:
     float p0, p1, p2, p3, p4, p5;
 

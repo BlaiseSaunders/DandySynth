@@ -49,7 +49,7 @@ float DandySynth::sampleWave(WAVE_TYPE waveType, float freq, int now, float para
 
 void DandySynth::processLFOs(int now)
 {
-		for (int i = 0; i < LFOS; i++) // Programmable oscis
+	for (int i = 0; i < LFOS; i++) // Programmable oscis
 	{
 		float note = controlValues[4+i] * 0.5;
 
@@ -80,16 +80,7 @@ float DandySynth::getOscilatorsOuput(int now)
 
 		float notePos = max(1.0 - (now - noteTimes[i]) / actualNoteDuration, 0.0); // time frame for envelope
 
-		struct EnvelopeSettings envSettings;
-		envSettings.attackStartValue = 0.0;
-		envSettings.attackEndValue = 1.0;
-		envSettings.attackTimeEnd = 0.1;
-		envSettings.sustainValue = 0.9;
-		envSettings.sustainTimeEnd = 0.5;
-		envSettings.releaseValueStart = 0.9;
-		envSettings.releaseValueEnd = 0.0;
-		envSettings.releaseTime = 0.3;
-		amps[i] = envelope(notePos, envSettings);
+		amps[i] = envelope(notePos, basicOneShotEnv);
 
 		sum += amps[i];
 	}
