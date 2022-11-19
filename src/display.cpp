@@ -32,25 +32,25 @@ void DandyDisplay::errorScreen()
 	menuText.push_back("Test4");
 
 
-	int encPos = this->encoderPos+this->encoderOffset;
+	int encPos = this->state.encoderPos+this->state.encoderOffset;
 
 	if (encPos < 0)
 	{
-		this->encoderOffset = -this->encoderPos;
-		encPos = this->encoderPos+this->encoderOffset;
+		this->state.encoderOffset = -this->state.encoderPos;
+		encPos = this->state.encoderPos+this->state.encoderOffset;
 	}
 
 	if ((signed int)encPos > (signed int)menuText.size()-1)
 	{
-		this->encoderOffset = (int)menuText.size()-this->encoderPos-1;
-		encPos = this->encoderPos+this->encoderOffset;
+		this->state.encoderOffset = (int)menuText.size()-this->state.encoderPos-1;
+		encPos = this->state.encoderPos+this->state.encoderOffset;
 	}
 
 	static int prevEncPos = 0;
-	if (prevEncPos != encoderPos)
-		Serial.printf("P: %d, O: %d, F: %d\n", encoderPos, encoderOffset, encPos);
+	if (prevEncPos != this->state.encoderPos)
+		Serial.printf("P: %d, O: %d, F: %d\n", state.encoderPos, state.encoderOffset, encPos);
 
-	prevEncPos = encoderPos;
+	prevEncPos = state.encoderPos;
 
 	this->menu("Main Menu", menuText, encPos);
 }
@@ -150,28 +150,30 @@ void DandyDisplay::runDisplay()
 	uint32_t now = micros();
 	static uint32_t lastSwitch = 0;
 
-	switch (currentDisplaymode)
+	switch (this->state.currentDisplaymode)
 	{
 	case MAIN:
-		mainMenu();
-		if (this->encoderPush && now-lastSwitch > 300000)
+		if (this->state.encoderPush && now-lastSwitch > 300000) // Debounce
 		{
-			this->encoderPush = false;
+			this->state.encoderPush = false;
 			tft->fillScreen(ST77XX_BLACK);
-			if (this->encoderPos+this->encoderOffset == 1)
-				this->currentDisplaymode = CONN;
+			if (this->state.encoderPos+this->state.encoderOffset == 1)
+				this->state.currentDisplaymode = CONN;
 			lastSwitch = now;
 		}
+		else
+			mainMenu();
 		break;
 	case CONN:
-		connMatrix();
-		if (this->encoderPush && now-lastSwitch > 300000)
+		if (this->state.encoderPush && now-lastSwitch > 300000)
 		{
 			tft->fillScreen(ST77XX_BLACK);
-			this->currentDisplaymode = MAIN;
-			this->encoderPush = false;
+			this->state.currentDisplaymode = MAIN;
+			this->state.encoderPush = false;
 			lastSwitch = now;
 		}
+		else
+			connMatrix();
 		break;
 
 	default:

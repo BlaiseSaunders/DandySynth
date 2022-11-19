@@ -52,14 +52,15 @@ private:
         CONN,
         WAVE
     };
+    typedef struct displayState {
+        enum displayMode currentDisplaymode = MAIN;
+        signed int encoderOffset = 0;
+        signed int encoderPos = 0;
+        int encoderPush = 0;
+    } displayState;
 
-    enum displayMode currentDisplaymode = MAIN;
+    displayState state;
 
-
-    signed int encoderOffset = 0;
-
-    signed int encoderPos = 0;
-    int encoderPush = 0;
 
     Adafruit_ST7789 *tft;
 };
