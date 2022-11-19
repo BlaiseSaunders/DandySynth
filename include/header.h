@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 #include <MIDI.h>
 #include <Encoder.h>
 #include "MCP_DAC.h"
@@ -28,6 +29,8 @@
 #define TFT_BACKLIGHT PIN_A3 // Display backlight pin
 
 
+int secToMicro(float sec);
+
 class DandyDisplay
 {
 public:
@@ -52,6 +55,7 @@ private:
         CONN,
         WAVE
     };
+
     typedef struct displayState {
         enum displayMode currentDisplaymode = MAIN;
         signed int encoderOffset = 0;
@@ -59,13 +63,14 @@ private:
         int encoderPush = 0;
     } displayState;
 
-    displayState state;
 
+    displayState state;
 
     Adafruit_ST7789 *tft;
 };
 
 
+// Pseudo Singleton main class for synthesis
 class DandySynth
 {
 private:
@@ -160,13 +165,8 @@ public:
 
     float noteToFreq(float note);
 
-
-    void setP0(float v);
-    void setP1(float v);
-    void setP2(float v);
-    void setP3(float v);
-    void setP4(float v);
-    void setP5(float v);
+    std::vector<float> params;
+    void setParameterArray(std::vector<float> params);
 
 
     void setEncPos(int pos);

@@ -97,8 +97,8 @@ void DandyDisplay::menu(std::string title, std::vector<std::string> text, int en
 
 void DandyDisplay::encoderPosPush(int pos, int push)
 {
-	encoderPos = pos;
-	encoderPush = push;
+	state.encoderPos = pos;
+	state.encoderPush = push;
 }
 
 void DandyDisplay::connMatrix()
@@ -153,7 +153,7 @@ void DandyDisplay::runDisplay()
 	switch (this->state.currentDisplaymode)
 	{
 	case MAIN:
-		if (this->state.encoderPush && now-lastSwitch > 300000) // Debounce
+		if (this->state.encoderPush && now-lastSwitch > secToMicro(0.3)) // Debounce
 		{
 			this->state.encoderPush = false;
 			tft->fillScreen(ST77XX_BLACK);
@@ -165,7 +165,7 @@ void DandyDisplay::runDisplay()
 			mainMenu();
 		break;
 	case CONN:
-		if (this->state.encoderPush && now-lastSwitch > 300000)
+		if (this->state.encoderPush && now-lastSwitch > secToMicro(0.3))
 		{
 			tft->fillScreen(ST77XX_BLACK);
 			this->state.currentDisplaymode = MAIN;

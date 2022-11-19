@@ -76,7 +76,7 @@ float DandySynth::getOscilatorsOuput(int now)
 		sampleWave((DandySynth::WAVE_TYPE)(controlValues[0]), freq, now, this->waveTablePos);
 
 		float noteDurationPercent = (float)controlValues[2] / 128.0;
-		float actualNoteDuration = pow(10, 6) * noteDurationPercent;
+		float actualNoteDuration = secToMicro(noteDurationPercent);
 
 		float notePos = max(1.0 - (now - noteTimes[i]) / actualNoteDuration, 0.0); // time frame for envelope
 
@@ -85,6 +85,7 @@ float DandySynth::getOscilatorsOuput(int now)
 		sum += amps[i];
 	}
 
+	// Make sure amplitudes of waves sum to < 1
 	for (int i = 0; i < OSCIS; i++)
 	{
 		if (sum > 1.0)
@@ -102,7 +103,8 @@ void DandySynth::run(uint32_t now)
 	display->encoderPosPush(encPos, encPush);
 	uint32_t snow = micros();
 	static uint32_t lastTime = 0;
-	if (snow - lastTime > 30000000)
+
+	if (snow - lastTime > secToMicro(0.3))
 	{
 		display->runDisplay();
 		lastTime = snow;
@@ -114,6 +116,7 @@ void DandySynth::run(uint32_t now)
 
 	float oscilatorOutput = getOscilatorsOuput(now);
 
+	// Output our 0-4096 wave position to DAC
 	MCP.fastWriteA(oscilatorOutput * 4096.0);
 
 	// Log what we've generated to a circular buffer for later rendering

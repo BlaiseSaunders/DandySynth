@@ -40,7 +40,6 @@ void setup()
 	synth->setup();
 }
 
-
 long oldPosition  = -999;
 bool buttonState = 0;
 long lastPress = 0;
@@ -50,17 +49,18 @@ void loop()
 	DIN_MIDI.read();
 	yield();
 
-	synth->setP0((analogRead(14)-10)/310.0);
-	synth->setP1((analogRead(15)-10)/310.0);
-	synth->setP2((analogRead(16)-10)/310.0);
-	synth->setP3((analogRead(17)-10)/310.0);
-	synth->setP4((analogRead(18)-10)/310.0);
-	synth->setP5((analogRead(19)-10)/310.0);
+
+	// Read potentiometer params from pins 14 to 19
+	std::vector<float> params;
+	for (int i = 14; i <= 19; i++)
+		params.push_back((analogRead(i)-10)/310.0);
+	synth->setParameterArray(params);
+	
 
 	uint32_t now = micros();
 	static uint32_t lastTime = 0;
 	// Our Serial Output
-	if (now - lastTime > 300000)
+	if (now - lastTime > secToMicro(1.0))
 	{
 		Serial.print("CC A:\t");
 		Serial.print(synth->controlValues[0]);
@@ -92,7 +92,7 @@ void loop()
 		Serial.println(newPosition);
 	}
 
-	if (!digitalRead(8) && !buttonState && now-lastPress > 300000)
+	if (!digitalRead(8) && !buttonState && now-lastPress > secToMicro(0.3))
 	{
 		Serial.println("ENCODED");
 		buttonState = 1;

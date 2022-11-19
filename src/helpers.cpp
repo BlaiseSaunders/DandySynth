@@ -1,5 +1,7 @@
 #include "header.h"
 
+
+// Forward declaration of static vars from class
 uint32_t DandySynth::noteTime;
 byte DandySynth::lastNote;
 byte DandySynth::controlValues[256];
@@ -13,6 +15,11 @@ byte DandySynth::lastNotes[OSCIS+1];
 float naive_lerp(float a, float b, float t)
 {
     return a + t * (b - a);
+}
+
+int secToMicro(float sec)
+{
+	return (float)pow(10, 6) * sec;
 }
 
 void DandySynth::generateWaveTables()
@@ -115,31 +122,7 @@ void DandySynth::handleMIDIControlChange(byte channel, byte number, byte value)
 	controlValues[value] = number;
 }
 
-void DandySynth::setP0(float p)
-{
-	this->p0 = p;
-}
-void DandySynth::setP1(float p)
-{
-	this->p1 = p;
-}
-void DandySynth::setP2(float p)
-{
-	this->p2 = p;
-}
-void DandySynth::setP3(float p)
-{
-	this->p3 = p;
-}
-void DandySynth::setP4(float p)
-{
-	this->p4 = p;
-}
-void DandySynth::setP5(float p)
-{
-	this->p5 = p;
-}
-
+void DandySynth::setParameterArray(std::vector<float> params) { this->params = params; }
 
 void DandySynth::setEncPos(int pos) { this->encPos = pos; }
 
