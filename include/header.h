@@ -13,13 +13,17 @@
 #include <SPI.h>
 #include <Fonts/FreeMonoBoldOblique12pt7b.h>
 #include <Fonts/FreeSerif9pt7b.h>
+#include "DandyDisplay.h"
 
 
 #define OSCIS 4
-#define BUFSIZE 64
-#define WAVETABLE_SIZE 16
-#define WAVE_SIZE 361
+#define BUFSIZE 128
+#define WAVETABLE_SIZE 32
+#define WAVE_SIZE 360
+#define NOTE_RANGE 256
 
+#define POT_START_PIN 14
+#define POT_COUNT 5
 
 // Because of the limited number of pins available on the Circuit Playground Boards
 // Software SPI is used
@@ -29,46 +33,7 @@
 #define TFT_BACKLIGHT PIN_A3 // Display backlight pin
 
 
-int secToMicro(float sec);
-
-class DandyDisplay
-{
-public:
-    DandyDisplay();
-    void setupDisplay();
-    void runDisplay();
-
-    void encoderPosPush(int pos, int push);
-
-private:
-    void mainMenu();
-    void connMatrix();
-    void waveFormDisplay();
-    void errorScreen();
-    void title(std::string title);
-
-    void menu(std::string title, std::vector<std::string> text, int encPos);
-
-    enum displayMode
-    {
-        MAIN,
-        CONN,
-        WAVE
-    };
-
-    typedef struct displayState {
-        enum displayMode currentDisplaymode = MAIN;
-        signed int encoderOffset = 0;
-        signed int encoderPos = 0;
-        int encoderPush = 0;
-    } displayState;
-
-
-    displayState state;
-
-    Adafruit_ST7789 *tft;
-};
-
+unsigned int secToMicro(float sec);
 
 // Pseudo Singleton main class for synthesis
 class DandySynth
@@ -82,30 +47,41 @@ private:
     struct EnvelopeSettings
     {
         float attackStartValue;
-        float attackEndValue;
         float attackTimeEnd;
         
         float sustainValue;
         float sustainTimeEnd;
 
-        float releaseValueStart;
         float releaseValueEnd;
         float releaseTime; // Higher is quicker
     };
 
     struct EnvelopeSettings basicOneShotEnv = {
         .attackStartValue = 0.0,
-        .attackEndValue = 1.0,
         .attackTimeEnd = 0.1,
         .sustainValue = 0.9,
         .sustainTimeEnd = 0.5,
-        .releaseValueStart = 0.9,
         .releaseValueEnd = 0.0,
         .releaseTime = 0.3
     };
+    struct EnvelopeSettings flatEnv = {
+        .attackStartValue = 1.0,
+        .attackTimeEnd = 0.1,
+        .sustainValue = 1.0,
+        .sustainTimeEnd = 0.5,
+        .releaseValueEnd = 1.0,
+        .releaseTime = 0.3
+    };
+    struct EnvelopeSettings funkyLoopEnv = {
+        .attackStartValue = 0.1,
+        .attackTimeEnd = 0.2,
+        .sustainValue = 0.9,
+        .sustainTimeEnd = 0.5,
+        .releaseValueEnd = 0.1,
+        .releaseTime = 0.6
+    };
 
 public:
-    float p0, p1, p2, p3, p4, p5;
 
     float velParam;
 
@@ -115,8 +91,8 @@ public:
 	float lfoWaveValues[LFOS];
 
     // LOOKUP TABLES
-    float sine[361];
-    float square[361];
+    float sine[WAVE_SIZE];
+    float square[WAVE_SIZE];
     float table[WAVETABLE_SIZE][WAVE_SIZE];
 
     MCP4921 MCP;
@@ -138,25 +114,29 @@ public:
     static byte lastChan;
     static byte lastVel;
     static uint32_t noteTimes[OSCIS+1];
+    static uint32_t noteIndexLookup[NOTE_RANGE];
     static byte lastNotes[OSCIS+1];
 
 
+
     void generateWaveTables();
-    void processLFOs(int now);
+    void processLFOs(uint32_t now);
 
-    float getOscilatorsOuput(int now);
+    float getOscilatorsOuput(uint32_t now);
 
-    float getNoteWave(float freq, int now, int slice);
-    float getNoteSquare(float freq, int now);
-    float getNoteSine(float freq, int now);
-    float getNoteSineR(float freq, int now);
-    float getNoteSineGoofy(float freq, int now);
-    float freqTo360Index(float freq, int now);
-    float freqToRadIndex(float freq, int now);
+    float getNoteWave(float freq, uint32_t now, int slice);
+    float getNoteSquare(float freq, uint32_t now);
+    float getNoteSine(float freq, uint32_t now);
+    float getNoteSineR(float freq, uint32_t now);
+    float getNoteSineGoofy(float freq, uint32_t now);
+    float freqToTableIndex(float freq, uint32_t now);
+    float freqToTableIndex(float freq, uint32_t now, int *rem);
+    float freqToRadIndex(float freq, uint32_t now);
 
-    float sampleWave(WAVE_TYPE waveType, float freq, int now, float param);
+    float sampleWave(WAVE_TYPE waveType, float freq, uint32_t now, float param);
 
     static void handleNoteOn(byte channel, byte pitch, byte velocity);
+    static void handleNoteOff(byte channel, byte pitch, byte velocity);
     static void handleMIDIControlChange(byte channel, byte pitch, byte velocity);
     float envelope(float t, struct DandySynth::EnvelopeSettings set);
 

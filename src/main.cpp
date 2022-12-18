@@ -4,9 +4,6 @@ MIDI_CREATE_INSTANCE(HardwareSerial, Serial1, DIN_MIDI);
 
 DandySynth *synth;
 
-
-#include <SPI.h>
-
 float p = 3.1415926;
 
 Encoder myEnc(3, 4);
@@ -16,9 +13,14 @@ void setupMIDI()
 {
 	DIN_MIDI.begin(MIDI_CHANNEL_OMNI);
 	DIN_MIDI.setHandleNoteOn(synth->handleNoteOn);
+	DIN_MIDI.setHandleNoteOff(synth->handleNoteOff);
 	DIN_MIDI.setHandleControlChange(synth->handleMIDIControlChange);
-	delay(100);
+	delay(10);
 }
+
+byte address = 0x00;
+int CS = 7;
+
 
 void setup()
 {
@@ -26,19 +28,25 @@ void setup()
 	Serial.begin(115200);
 
 	// Setup our pins
-	pinMode(14, INPUT_PULLUP);
-	pinMode(15, INPUT_PULLUP);
-	pinMode(16, INPUT_PULLUP);
-	pinMode(17, INPUT_PULLUP);
-	pinMode(18, INPUT_PULLUP);
-	pinMode(19, INPUT_PULLUP);
-
+	for (int i = POT_START_PIN; i <= POT_START_PIN+POT_COUNT; i++)
+		pinMode(i, INPUT_PULLUP);
 
 	synth = new DandySynth();
 
 	setupMIDI();
 	synth->setup();
+
+	pinMode (CS, OUTPUT);
 }
+
+int digitalPotWrite(int value)
+{
+	digitalWrite(CS, LOW);
+	SPI1.transfer(address);
+	SPI1.transfer(value);
+	digitalWrite(CS, HIGH);
+}
+
 
 long oldPosition  = -999;
 bool buttonState = 0;
@@ -46,13 +54,27 @@ long lastPress = 0;
 
 void loop()
 {
+	/*for (int i = 0; i <= 255; i++)
+	{
+		digitalPotWrite(i);
+		Serial.println(i);
+		delay(256);
+	}
+	delay(1024);
+	for (int i = 255; i >= 0; i--)
+	{
+		digitalPotWrite(i);
+		Serial.println(i);
+		delay(256);
+	}
+	return;*/
+
 	DIN_MIDI.read();
 	yield();
 
-
 	// Read potentiometer params from pins 14 to 19
 	std::vector<float> params;
-	for (int i = 14; i <= 19; i++)
+	for (int i = POT_START_PIN; i <= POT_START_PIN+POT_COUNT; i++)
 		params.push_back((analogRead(i)-10)/310.0);
 	synth->setParameterArray(params);
 	
@@ -60,7 +82,7 @@ void loop()
 	uint32_t now = micros();
 	static uint32_t lastTime = 0;
 	// Our Serial Output
-	if (now - lastTime > secToMicro(1.0))
+	if (now - lastTime > secToMicro(1.0) && false)
 	{
 		Serial.print("CC A:\t");
 		Serial.print(synth->controlValues[0]);
@@ -68,7 +90,7 @@ void loop()
 		Serial.print(synth->controlValues[4]*0.5);
 		Serial.print("\tWT Pos:\t");
 		Serial.print(synth->waveTablePos);
-		Serial.print("\tLastNoteval:\t");
+		Serial.print("\tLastNoteval:\t"); 
 		Serial.print(synth->outBuffer[synth->bufPos%BUFSIZE]);
 		Serial.print("\tLastNotevalReal:\t");
 		Serial.print(synth->lastNotes[0]);
@@ -79,8 +101,8 @@ void loop()
 		Serial.print("\tTime:\t");
 		Serial.print(now-synth->noteTime);
 
-		Serial.printf("\tp0: %f\t", synth->p0);
-		Serial.printf("\tp1: %f\t", synth->p1);
+		Serial.printf("\tp0: %f\t", synth->params[0]);
+		Serial.printf("\tp1: %f\t", synth->params[1]);
 		Serial.println();
 		lastTime = now;
 	}

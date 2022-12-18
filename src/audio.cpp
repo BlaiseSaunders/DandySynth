@@ -7,7 +7,7 @@ float DandySynth::envelope(float t, struct DandySynth::EnvelopeSettings set)
 	if (t < set.attackTimeEnd)
 	{
 		t *= 1.0 / set.attackTimeEnd; // Get range from 0 to 1
-		return max(set.attackEndValue * t, set.attackStartValue); // Ramp up
+		return max(set.sustainValue * t, set.attackStartValue); // Ramp up
 	}
 	else if (t < set.sustainTimeEnd)
 		return set.sustainValue; // Hold
@@ -16,11 +16,11 @@ float DandySynth::envelope(float t, struct DandySynth::EnvelopeSettings set)
 		t -= set.sustainTimeEnd;
 		t *= 1.0 / (1.0 - set.sustainTimeEnd) + set.releaseTime; // Get range from 0 to 1
 		t = 1.0 - t;
-		return max(set.releaseValueStart * t, set.releaseValueEnd); // Ramp down
+		return max(set.sustainValue * t, set.releaseValueEnd); // Ramp down
 	}
 }
 
-float DandySynth::sampleWave(WAVE_TYPE waveType, float freq, int now, float param)
+float DandySynth::sampleWave(WAVE_TYPE waveType, float freq, uint32_t now, float param)
 {
 	float out = 0.0;
 
@@ -47,18 +47,17 @@ float DandySynth::sampleWave(WAVE_TYPE waveType, float freq, int now, float para
 	return out;
 }
 
-void DandySynth::processLFOs(int now)
+void DandySynth::processLFOs(uint32_t now)
 {
 	for (int i = 0; i < LFOS; i++) // Programmable oscis
 	{
-		float note = controlValues[4+i] * 0.5;
-
-		float freq = noteToFreq(note);
+		static_assert(LFOS <= POT_COUNT, "Need enough Pots for all the LFOs");
+		float freq = params[i]*32.0;
 		lfoWaveValues[i] = getNoteSine(freq, now);
 	}
 }
 
-float DandySynth::getOscilatorsOuput(int now)
+float DandySynth::getOscilatorsOuput(uint32_t now)
 {
 	float pos = 0;
 	float slices[OSCIS];
@@ -69,18 +68,29 @@ float DandySynth::getOscilatorsOuput(int now)
 	{
 		float note = (int)lastNotes[i] - 36;
 
-		float freq = noteToFreq(note);
+		float freq = noteToFreq(note);//+lfoWaveValues[0];
 
-		this->waveTablePos = lfoWaveValues[0] * 20.0 + 1.0;
+		this->waveTablePos = 0;//lfoWaveValues[0] * 20.0 + 1.0;
 
-		sampleWave((DandySynth::WAVE_TYPE)(controlValues[0]), freq, now, this->waveTablePos);
+		slices[i] = sampleWave((DandySynth::WAVE_TYPE)(controlValues[0]), freq, now, this->waveTablePos);
 
 		float noteDurationPercent = (float)controlValues[2] / 128.0;
 		float actualNoteDuration = secToMicro(noteDurationPercent);
 
-		float notePos = max(1.0 - (now - noteTimes[i]) / actualNoteDuration, 0.0); // time frame for envelope
+		float notePos = 1.0;
 
-		amps[i] = envelope(notePos, basicOneShotEnv);
+		if (noteTimes[i])
+		{
+			notePos = max(1.0 - (now - noteTimes[i]) / actualNoteDuration, 0.0); // time frame for envelope
+			float envStartValue = envelope(fmod(noteTimes[i] / (float)secToMicro(0.7), 1.0), funkyLoopEnv);
+			struct EnvelopeSettings fallOffEnv = basicOneShotEnv;
+			fallOffEnv.attackStartValue = envStartValue;
+			amps[i] = envelope(notePos, fallOffEnv);
+		}
+		else
+			amps[i] = envelope(fmod(now / (float)secToMicro(0.7), 1.0), flatEnv);
+			// amps[i] = envelope(fmod(now / (float)secToMicro(0.7), 1.0), funkyLoopEnv); // TODO: PUT BACK
+
 
 		sum += amps[i];
 	}
@@ -104,11 +114,7 @@ void DandySynth::run(uint32_t now)
 	uint32_t snow = micros();
 	static uint32_t lastTime = 0;
 
-	if (snow - lastTime > secToMicro(0.3))
-	{
-		display->runDisplay();
-		lastTime = snow;
-	}
+	display->runDisplay();
 
 	this->fmFreq = controlValues[3];
 
@@ -120,7 +126,7 @@ void DandySynth::run(uint32_t now)
 	MCP.fastWriteA(oscilatorOutput * 4096.0);
 
 	// Log what we've generated to a circular buffer for later rendering
-	outBuffer[bufPos++ % BUFSIZE] = (int)oscilatorOutput * 128 / 4096;
+	outBuffer[bufPos++ % BUFSIZE] = (float)oscilatorOutput * 32.0;
 }
 
 void DandySynth::setup()
@@ -131,4 +137,5 @@ void DandySynth::setup()
 	MCP.fastWriteA(0);
 
 	display = new DandyDisplay();
+	display->outBuffer = this->outBuffer;
 }

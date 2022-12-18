@@ -18,10 +18,11 @@ void DandyDisplay::errorScreen()
 	this->menu("RUH ROH", menuText, 0);
 }
 
- void DandyDisplay::mainMenu()
+void DandyDisplay::mainMenu()
 {
 	std::vector<std::string> menuText;
 
+	// Must lineup with displayMode+1
 	menuText.push_back("Table Select");
 	menuText.push_back("Matrix Select");
 	menuText.push_back("Waveform View");
@@ -108,7 +109,9 @@ void DandyDisplay::connMatrix()
 
 void DandyDisplay::waveFormDisplay()
 {
-
+	static int i = 0;
+	this->tft->drawPixel(i % BUFSIZE, this->outBuffer[i % BUFSIZE]+64, ST77XX_ORANGE);
+	i++;
 }
 
 DandyDisplay::DandyDisplay() // Constructor
@@ -147,35 +150,39 @@ void DandyDisplay::setupDisplay()
 
 void DandyDisplay::runDisplay()
 {
+	// Early exit if no change
+	if (!memcmp(&state, &preState, sizeof (displayState)))
+		return;
+
+	preState = state;
+
 	uint32_t now = micros();
 	static uint32_t lastSwitch = 0;
+
+
+	int menuPosition = this->state.encoderPos+this->state.encoderOffset;
+	if (this->state.encoderPush && now-lastSwitch > secToMicro(0.3)) // Debounce
+	{
+		this->state.encoderPush = false;
+		tft->fillScreen(ST77XX_BLACK);
+		if (this->state.currentDisplaymode != MAIN) // Single level menu
+			this->state.currentDisplaymode = MAIN;
+		else
+			this->state.currentDisplaymode = (displayMode)(menuPosition+1);
+		lastSwitch = now;
+	}
 
 	switch (this->state.currentDisplaymode)
 	{
 	case MAIN:
-		if (this->state.encoderPush && now-lastSwitch > secToMicro(0.3)) // Debounce
-		{
-			this->state.encoderPush = false;
-			tft->fillScreen(ST77XX_BLACK);
-			if (this->state.encoderPos+this->state.encoderOffset == 1)
-				this->state.currentDisplaymode = CONN;
-			lastSwitch = now;
-		}
-		else
-			mainMenu();
+		mainMenu();
 		break;
-	case CONN:
-		if (this->state.encoderPush && now-lastSwitch > secToMicro(0.3))
-		{
-			tft->fillScreen(ST77XX_BLACK);
-			this->state.currentDisplaymode = MAIN;
-			this->state.encoderPush = false;
-			lastSwitch = now;
-		}
-		else
-			connMatrix();
+	case CONNECITON:
+		connMatrix();
 		break;
-
+	case WAVEFORM:
+		waveFormDisplay();
+		break;
 	default:
 		errorScreen();
 		break;
