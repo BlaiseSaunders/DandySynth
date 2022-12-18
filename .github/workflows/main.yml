@@ -1,6 +1,6 @@
 name: PlatformIO
 
-on: pull_request
+on: push
 
 jobs:
   build:
@@ -19,3 +19,8 @@ jobs:
           silent: false
           verbose: true
           disable-auto-clean: false
+      - name: Store Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: "./.pio/build/teensy41/firmware.hex"
