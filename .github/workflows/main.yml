@@ -19,3 +19,4 @@ jobs:
           silent: false
           verbose: true
           disable-auto-clean: false
+
